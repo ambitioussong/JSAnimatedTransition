@@ -12,7 +12,7 @@
 
 - (NSTimeInterval)transitionDuration:(nullable id <UIViewControllerContextTransitioning>)transitionContext;
 {
-    return 0.3f;
+    return 0.5f;
 }
 
 - (void)animateTransition:(id <UIViewControllerContextTransitioning>)transitionContext
@@ -24,7 +24,7 @@
     UIView * fromView = fromVC.view;
     UIView * toView = toVC.view;
     
-    containerView.backgroundColor = [UIColor whiteColor];
+    containerView.backgroundColor = [UIColor yellowColor];
     
     if (self.animationType == AnimationTypePresent) {
         //snapshot方法是很高效的截屏
@@ -35,28 +35,22 @@
         UIView * snap2 = [toView snapshotViewAfterScreenUpdates:YES];
         [containerView addSubview:snap2];
         
-        snap2.transform = CGAffineTransformMakeTranslation(-320, 0);
+        snap2.transform = CGAffineTransformMakeTranslation(0, -CGRectGetHeight(snap2.bounds));
         [UIView animateWithDuration:[self transitionDuration:transitionContext]
-                              delay:0
-             usingSpringWithDamping:0.5
-              initialSpringVelocity:0
-                            options:UIViewAnimationOptionCurveLinear
-                         animations: ^{
-            
-            snap2.transform = CGAffineTransformIdentity;
-            
-        } completion:^(BOOL finished) {
-            
-            //删掉截图
-            [snap removeFromSuperview];
-            [snap2 removeFromSuperview];
-            
-            //添加视图
-            [[transitionContext containerView] addSubview:toView];
-            
-            //结束Transition
-            [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
-        }];
+                         animations:^{
+                             snap2.transform = CGAffineTransformIdentity;
+                         }
+                         completion:^(BOOL finished) {
+                             //删掉截图
+                             [snap removeFromSuperview];
+                             [snap2 removeFromSuperview];
+                             
+                             //添加视图
+                             [containerView addSubview:toView];
+                             
+                             //结束Transition
+                             [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
+                         }];
         
     } else {
         UIView * snap = [toView snapshotViewAfterScreenUpdates:YES];
@@ -66,25 +60,20 @@
         [containerView addSubview:snap2];
         
         [UIView animateWithDuration:[self transitionDuration:transitionContext]
-                              delay:0
-             usingSpringWithDamping:0.5
-              initialSpringVelocity:0
-                            options:UIViewAnimationOptionCurveLinear animations: ^{
-            
-            snap2.transform = CGAffineTransformMakeTranslation(-320, 0);
-            
-        } completion:^(BOOL finished) {
-            
-            //删掉截图
-            [snap removeFromSuperview];
-            [snap2 removeFromSuperview];
-            
-            //添加视图
-            [[transitionContext containerView] addSubview:toView];
-            
-            //结束Transition
-            [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
-        }];
+                         animations:^{
+                             snap2.transform = CGAffineTransformMakeTranslation(0, CGRectGetHeight(snap2.bounds));
+                         }
+                         completion:^(BOOL finished) {
+                             //删掉截图
+                             [snap removeFromSuperview];
+                             [snap2 removeFromSuperview];
+                             
+                             //添加视图
+                             [containerView addSubview:toView];
+                             
+                             //结束Transition
+                             [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
+                         }];
     }
 }
 

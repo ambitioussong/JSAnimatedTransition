@@ -32,14 +32,16 @@
     self.navigationController.delegate = self;
     
     UIButton *button1 = [UIButton buttonWithType:UIButtonTypeCustom];
-    button1.frame = CGRectMake(100, 100, 100, 50);
-    button1.backgroundColor = [UIColor blueColor];
+    button1.frame = CGRectMake(100, 100, 200, 50);
+    button1.backgroundColor = [UIColor redColor];
+    [button1 setTitle:@"Custom Push" forState:UIControlStateNormal];
     [self.view addSubview:button1];
     [button1 addTarget:self action:@selector(onButton1) forControlEvents:UIControlEventTouchUpInside];
     
     UIButton *button2 = [UIButton buttonWithType:UIButtonTypeCustom];
-    button2.frame = CGRectMake(100, 300, 100, 50);
-    button2.backgroundColor = [UIColor greenColor];
+    button2.frame = CGRectMake(100, 300, 200, 50);
+    button2.backgroundColor = [UIColor redColor];
+    [button2 setTitle:@"Custom Present" forState:UIControlStateNormal];
     [self.view addSubview:button2];
     [button2 addTarget:self action:@selector(onButton2) forControlEvents:UIControlEventTouchUpInside];
 }
@@ -80,19 +82,27 @@
 
 #pragma mark - Actions
 
-- (void)onButton1
-{
+- (void)onButton1 {
     UIViewController *toVC = [[UIViewController alloc] init];
     toVC.view.backgroundColor = [UIColor blueColor];
     [self.navigationController pushViewController:toVC animated:YES];
 }
 
-- (void)onButton2
-{
+- (void)onButton2 {
     self.presentingVC = [[UIViewController alloc] init];
+    UIButton *disBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.presentingVC.view addSubview:disBtn];
+    disBtn.frame = CGRectMake(100, 300, 200, 50);
+    disBtn.backgroundColor = [UIColor redColor];
+    [disBtn setTitle:@"Custom Dismiss" forState:UIControlStateNormal];
+    [disBtn addTarget:self action:@selector(onDisButton) forControlEvents:UIControlEventTouchUpInside];
     self.presentingVC.view.backgroundColor = [UIColor greenColor];
     self.presentingVC.transitioningDelegate = self;
     [self presentViewController:self.presentingVC animated:YES completion:nil];
+}
+
+- (void)onDisButton {
+    [self.presentingVC dismissViewControllerAnimated:YES completion:nil];
 }
 
 @end
