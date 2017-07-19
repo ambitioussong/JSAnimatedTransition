@@ -9,10 +9,13 @@
 #import "HomeViewController.h"
 #import "JSNavigationAnimatedTransition.h"
 #import "JSPresentationAnimatedTransition.h"
+#import "SSPresentationController.h"
+#import "SSPresentedViewController.h"
 
 @interface HomeViewController ()<UINavigationControllerDelegate, UIViewControllerTransitioningDelegate>
 
-@property (nonatomic, strong) UIViewController *presentingVC;
+@property (nonatomic, strong) SSPresentedViewController             *presentedVC;
+@property (nonatomic, strong) UIPercentDrivenInteractiveTransition  *interactionController;
 
 @end
 
@@ -20,7 +23,7 @@
 
 - (void)injected
 {
-    [self.presentingVC dismissViewControllerAnimated:YES completion:nil];
+    [self.presentedVC dismissViewControllerAnimated:YES completion:nil];
     NSLog(@"1");
 }
 
@@ -44,6 +47,10 @@
     [button2 setTitle:@"Custom Present" forState:UIControlStateNormal];
     [self.view addSubview:button2];
     [button2 addTarget:self action:@selector(onButton2) forControlEvents:UIControlEventTouchUpInside];
+    
+    UIPanGestureRecognizer *panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self
+                                                                                    action:@selector(didClickPanGestureRecognizer:)];
+    [self.navigationController.view addGestureRecognizer:panRecognizer];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -51,12 +58,31 @@
     // Dispose of any resources that can be recreated.
 }
 
+- (void)didClickPanGestureRecognizer:(UIPanGestureRecognizer*)recognizer {
+    if (recognizer.state == UIGestureRecognizerStateBegan) {
+        self.interactionController = [[UIPercentDrivenInteractiveTransition alloc] init];
+        [self presentViewController:self.presentedVC animated:YES completion:nil];
+    } else if (recognizer.state == UIGestureRecognizerStateChanged) {
+        CGPoint translation = [recognizer translationInView:self.view];
+        CGFloat percent = fabs(translation.x / CGRectGetWidth(self.view.bounds));
+        [self.interactionController updateInteractiveTransition:percent];
+    } else if (recognizer.state == UIGestureRecognizerStateEnded) {
+        CGPoint translation = [recognizer translationInView:self.view];
+        CGFloat percent = fabs(translation.x / CGRectGetWidth(self.view.bounds));
+        if (percent > 0.5) {
+            [self.interactionController finishInteractiveTransition];
+        } else {
+            [self.interactionController cancelInteractiveTransition];
+        }
+        self.interactionController = nil;
+    }
+}
+
 #pragma mark - UINavigationControllerDelegate
 
 - (id<UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController animationControllerForOperation:(UINavigationControllerOperation)operation fromViewController:(UIViewController *)fromVC toViewController:(UIViewController *)toVC {
     
-    if (UINavigationControllerOperationPush == operation)
-    {
+    if (UINavigationControllerOperationPush == operation) {
         JSNavigationAnimatedTransition *jsAnimateTransition = [[JSNavigationAnimatedTransition alloc] init];
         
         return jsAnimateTransition;
@@ -64,21 +90,14 @@
     return nil;
 }
 
-#pragma mark - UIViewControllerTransitioningDelegate
 
-- (id<UIViewControllerAnimatedTransitioning>)animationControllerForPresentedController:(UIViewController *)presented presentingController:(UIViewController *)presenting sourceController:(UIViewController *)source {
-    
-    JSPresentationAnimatedTransition *customPresentation = [[JSPresentationAnimatedTransition alloc] init];
-    customPresentation.animationType = AnimationTypePresent;
-    return customPresentation;
-}
 
-- (id<UIViewControllerAnimatedTransitioning>)animationControllerForDismissedController:(UIViewController *)dismissed {
-    
-    JSPresentationAnimatedTransition *customPresentation = [[JSPresentationAnimatedTransition alloc] init];
-    customPresentation.animationType = AnimationTypeDismiss;
-    return customPresentation;
-}
+//- (UIPresentationController *)presentationControllerForPresentedViewController:(UIViewController *)presented presentingViewController:(UIViewController *)presenting sourceViewController:(UIViewController *)source {
+//    SSPresentationController *presentation = [[SSPresentationController alloc] initWithPresentedViewController:presented
+//                                                                                      presentingViewController:presenting];
+//    
+//    return presentation;
+//}
 
 #pragma mark - Actions
 
@@ -89,20 +108,16 @@
 }
 
 - (void)onButton2 {
-    self.presentingVC = [[UIViewController alloc] init];
-    UIButton *disBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.presentingVC.view addSubview:disBtn];
-    disBtn.frame = CGRectMake(100, 300, 200, 50);
-    disBtn.backgroundColor = [UIColor redColor];
-    [disBtn setTitle:@"Custom Dismiss" forState:UIControlStateNormal];
-    [disBtn addTarget:self action:@selector(onDisButton) forControlEvents:UIControlEventTouchUpInside];
-    self.presentingVC.view.backgroundColor = [UIColor greenColor];
-    self.presentingVC.transitioningDelegate = self;
-    [self presentViewController:self.presentingVC animated:YES completion:nil];
+    [self presentViewController:self.presentedVC animated:YES completion:nil];
 }
 
-- (void)onDisButton {
-    [self.presentingVC dismissViewControllerAnimated:YES completion:nil];
+#pragma mark - Getters
+
+- (SSPresentedViewController *)presentedVC {
+    if (!_presentedVC) {
+        _presentedVC = [[SSPresentedViewController alloc] init];
+    }
+    return _presentedVC;
 }
 
 @end
